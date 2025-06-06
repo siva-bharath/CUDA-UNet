@@ -68,11 +68,7 @@ def train_model(
                 pbar.update(images.shape[0])
                 global_step += 1
                 epoch_loss += loss.item()
-                experiment.log({
-                    'train loss': loss.item(),
-                    'step': global_step,
-                    'epoch': epoch
-                })
+                writer.add_scalar('train loss', loss.item(), global_step)
                 pbar.set_postfix(**{'loss (batch)': loss.item()})
 
                 # Evaluation round

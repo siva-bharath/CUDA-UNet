@@ -1,24 +1,24 @@
-import os
+import logging
+from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
-import torchvision.transforms.functional as TF
 
 class BasicDataset(Dataset):
     def __init__(self, images_dir: str, masks_dir: str, scale: float = 1.0, mask_suffix: str = ''):
-        self.images_dir = images_dir
-        self.masks_dir = masks_dir
+        self.images_dir = Path(images_dir)
+        self.masks_dir = Path(masks_dir)
         self.scale = scale
         self.mask_suffix = mask_suffix
-        self.ids = [os.path.splitext(file)[0] for file in os.listdir(images_dir)
-                   if not file.startswith('.')]
+        self.ids = [p.stem for p in self.images_dir.iterdir() if not p.name.startswith('.')]
         if not self.ids:
-            raise RuntimeError(f'No input file found in {images_dir}, make sure you put your images there')
+            raise RuntimeError(f'No input file found in {self.images_dir}, make sure you put your images there')
 
         logging.info(f'Creating dataset with {len(self.ids)} examples')
         logging.info('Scanning mask files to determine unique values')
-        unique_mask_values = sorted(np.unique(np.array(Image.open(os.path.join(masks_dir, self.ids[0] + self.mask_suffix + '.png')))))
+        first_mask = Image.open(self.masks_dir / f'{self.ids[0]}{self.mask_suffix}.png')
+        unique_mask_values = sorted(np.unique(np.array(first_mask)))
         self.mask_values = list(map(lambda x: x / 255.0, unique_mask_values))
         logging.info(f'Unique mask values: {self.mask_values}')
 

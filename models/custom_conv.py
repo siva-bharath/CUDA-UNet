@@ -34,7 +34,6 @@ class CustomConv2dFunction(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        input, weight, bias = ctx.saved_tensors
         stride = ctx.stride
         padding = ctx.padding
 
@@ -47,6 +46,7 @@ class CustomConv2dFunction(torch.autograd.Function):
         grad_bias = grad_output.sum((0, 2, 3)) if bias is not None else None
 
         return grad_input, grad_weight, grad_bias, None, None
+
 
 class CustomConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):

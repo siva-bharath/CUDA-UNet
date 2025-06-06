@@ -58,6 +58,14 @@ python train.py --data_dir /path/to/dataset --epochs 100 --batch_size 32
 ```
 The training script automatically loads the compiled CUDA extension if it is present.
 
+
+### Evaluation
+
+```bash
+python evaluate.py --model_path /path/to/model --test_dir /path/to/test/data
+```
+
+
 ## License
 
 MIT License

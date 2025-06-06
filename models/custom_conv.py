@@ -26,13 +26,27 @@ except (RuntimeError, FileNotFoundError):
 class CustomConv2dFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input, weight, bias, stride, padding):
+        ctx.save_for_backward(input, weight, bias)
+        ctx.stride = stride
+        ctx.padding = padding
         outputs = custom_conv.forward(input, weight, bias, stride, padding)
         return outputs[0]
 
     @staticmethod
     def backward(ctx, grad_output):
-        # For simplicity, use autograd fallback
-        raise NotImplementedError('Backward pass not implemented for custom conv')
+        stride = ctx.stride
+        padding = ctx.padding
+
+        grad_input = torch.nn.grad.conv2d_input(
+            input.shape, weight, grad_output, stride=stride, padding=padding
+        )
+        grad_weight = torch.nn.grad.conv2d_weight(
+            input, weight.shape, grad_output, stride=stride, padding=padding
+        )
+        grad_bias = grad_output.sum((0, 2, 3)) if bias is not None else None
+
+        return grad_input, grad_weight, grad_bias, None, None
+
 
 class CustomConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):

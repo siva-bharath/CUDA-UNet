@@ -2,16 +2,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+try:
+    from .custom_conv import CustomConv2d
+    _HAS_CUSTOM = True
+except Exception:
+    CustomConv2d = nn.Conv2d
+    _HAS_CUSTOM = False
+
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
         if not mid_channels:
             mid_channels = out_channels
+        Conv = CustomConv2d if _HAS_CUSTOM else nn.Conv2d
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
+            Conv(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(mid_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            Conv(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
